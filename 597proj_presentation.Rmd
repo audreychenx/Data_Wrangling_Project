@@ -473,6 +473,7 @@ leaflet() %>% addTiles()  %>% setView(-97, 40, zoom = 4) %>%
 
 ---
 
+## Visualize the cose of living
 In general, the most expensive areas to live were Hawaii, Alaska, the West Coast, and the Northeast. The least expensive areas were the Midwest and Southern states.
 ```{r echo=FALSE}
 cost_liv <- read.csv("cost_of_living.csv",header = TRUE)
