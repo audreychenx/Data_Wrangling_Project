@@ -1,0 +1,512 @@
+---
+title: "Ideal States for MSDS Students"
+author: "Xuejun Chen"
+date: "2018/4/30"
+output:
+  ioslides_presentation: default
+  beamer_presentation: default
+---
+
+
+```{r setup, include=FALSE}
+## Packages Required
+knitr::opts_chunk$set(echo = TRUE)
+library(readxl)
+library(rvest)
+library(tidyverse)
+library(stringr)
+library(choroplethr)
+library(DT) 
+library(dplyr)
+library(ggplot2)
+library(ggmap)    
+library(maps)    
+library(mapdata)  
+library(leaflet)
+devtools::install_github("dkahle/ggmap")
+
+## API KEY
+register_google(key ="")
+```
+
+<style>
+pre {
+  overflow-x: auto;
+}
+pre code {
+  word-wrap: normal;
+  white-space: pre;
+}
+</style>
+
+---
+
+## What to concern?
+- Job Availablity 
+- Potential Competitors
+- Cost of Living
+
+
+
+## Data Scourses
+- Indeed.com
+- USNews.com
+- Community & Economic Research (C2ER) survey
+
+
+
+## Web Scraping on Indeed
+### Key words used
+  * Data Scientist
+  * Business Analyst
+  * Data Analyst
+  * Data Engineer
+  * Business Intelligence
+
+
+## Example
+```
+ job_title <- "\"Data+Scientist\""
+ for (i in 1:50){
+  location <- state.abb[i]
+  ADV_URL <- paste0('https://www.indeed.com/jobs?as_and=&as_not=&as_cmp=&jt=all&st=&salary=&sr=directhire&radius=25&fromage=any&limit=50&sort=date&psf=advsrch&as_any=&as_phr=&as_ttl=', job_title, '&l=', location)
+  start_page <- read_html(ADV_URL)
+  count <- unlist(strsplit(start_page %>% 
+                                 html_node("#searchCount") %>%
+                                 html_text(), split = ' ')) 
+  job_count[i] <- as.numeric(gsub(",", "", count[12]))
+}
+```
+
+
+
+## Tidy Data
+```{r indeed, echo=FALSE, message=FALSE, warning=FALSE}
+source('~/Desktop/Data Wrangling/abbr2state.R') # function to conver the abb.state into full state names
+# Data Scientist
+job_title <- "\"Data+Scientist\""
+
+ADV_URL <- NULL
+job_count <- NULL
+for (i in 1:50){
+  location <- state.abb[i]
+  ADV_URL <- paste0('https://www.indeed.com/jobs?as_and=&as_not=&as_cmp=&jt=all&st=&salary=&sr=directhire&radius=25&fromage=any&limit=50&sort=date&psf=advsrch&as_any=&as_phr=&as_ttl=', job_title, '&l=', location)
+  start_page <- read_html(ADV_URL)
+  count <- unlist(strsplit(start_page %>% 
+                                 html_node("#searchCount") %>%
+                                 html_text(), split = ' ')) 
+  job_count[i] <- as.numeric(gsub(",", "", count[12]))
+}
+
+df_ds <- cbind(region = abbr2state(state.abb),job_count)
+df_ds <- as.data.frame(df_ds)
+df_ds$job_count <- as.numeric(as.character(df_ds$job_count))
+df_ds$region <- tolower(df_ds$region)
+df_ds <- df_ds %>% mutate(title= "Data Scientist")
+ds_opt_states <- df_ds[which(df_ds$job_count>50),]
+#nrow(ds_opt_states) # only 12 states have more than 50 job openings
+#sum(ds_opt_states$job_count) # 2078 in these 12 states
+
+#Business Analyst
+job_title <- "\"Business+Analyst\""
+
+ADV_URL <- NULL
+job_count <- NULL
+for (i in 1:50){
+  location <- state.abb[i]
+  ADV_URL <- paste0('https://www.indeed.com/jobs?as_and=&as_not=&as_cmp=&jt=all&st=&salary=&sr=directhire&radius=25&fromage=any&limit=50&sort=date&psf=advsrch&as_any=&as_phr=&as_ttl=', job_title, '&l=', location)
+  start_page <- read_html(ADV_URL)
+  count <- unlist(strsplit(start_page %>% 
+                             html_node("#searchCount") %>%
+                             html_text(), split = ' ')) 
+  job_count[i] <- as.numeric(gsub(",", "", count[12]))
+}
+
+df_ba <- cbind(region = abbr2state(state.abb),job_count)
+df_ba <- as.data.frame(df_ba)
+df_ba$job_count <- as.numeric(as.character(df_ba$job_count))
+df_ba$region <- tolower(df_ba$region)
+df_ba <- df_ba %>% mutate(title= "Business Analyst")
+ba_opt_states <- df_ba[which(df_ba$job_count>50),]
+# nrow(ba_opt_states) # 25 states have more than 50 job openings
+# sum(ba_opt_states$job_count) # 5560 in these 25 states
+
+
+#Data Analyst
+job_title <- "\"Data+Analyst\""
+
+ADV_URL <- NULL
+job_count <- NULL
+for (i in 1:50){
+  location <- state.abb[i]
+  ADV_URL <- paste0('https://www.indeed.com/jobs?as_and=&as_not=&as_cmp=&jt=all&st=&salary=&sr=directhire&radius=25&fromage=any&limit=50&sort=date&psf=advsrch&as_any=&as_phr=&as_ttl=', job_title, '&l=', location)
+  start_page <- read_html(ADV_URL)
+  count <- unlist(strsplit(start_page %>% 
+                             html_node("#searchCount") %>%
+                             html_text(), split = ' ')) 
+  job_count[i] <- as.numeric(gsub(",", "", count[12]))
+}
+
+df_da <- cbind(region = abbr2state(state.abb),job_count)
+df_da <- as.data.frame(df_da)
+df_da$job_count <- as.numeric(as.character(df_da$job_count))
+df_da$region <- tolower(df_da$region)
+df_da <- df_da %>% mutate(title= "Data Analyst")
+ba_opt_states <- df_da[which(df_da$job_count>50),]
+# nrow(ba_opt_states) # 20 states have more than 50 job openings
+# sum(ba_opt_states$job_count) # 2686 in these 20 states
+
+# Data Engineer
+job_title <- "\"Data+Engineer\""
+
+ADV_URL <- NULL
+job_count <- NULL
+for (i in 1:50){
+  location <- state.abb[i]
+  ADV_URL <- paste0('https://www.indeed.com/jobs?as_and=&as_not=&as_cmp=&jt=all&st=&salary=&sr=directhire&radius=25&fromage=any&limit=50&sort=date&psf=advsrch&as_any=&as_phr=&as_ttl=', job_title, '&l=', location)
+  start_page <- read_html(ADV_URL)
+  count <- unlist(strsplit(start_page %>% 
+                             html_node("#searchCount") %>%
+                             html_text(), split = ' ')) 
+  job_count[i] <- as.numeric(gsub(",", "", count[12]))
+}
+
+df_de <- cbind(region = abbr2state(state.abb),job_count)
+df_de <- as.data.frame(df_de)
+df_de$job_count <- as.numeric(as.character(df_de$job_count))
+df_de$region <- tolower(df_de$region)
+df_de <- df_de %>% mutate(title= "Data Engineer")
+de_opt_states <- df_de[which(df_de$job_count>50),]
+# nrow(de_opt_states) # 7 states have more than 50 job openings
+# sum(de_opt_states$job_count) # 1032 in these 7 states
+
+#Business Intelligence
+job_title <- "\"Business+Intelligence\""
+
+ADV_URL <- NULL
+job_count <- NULL
+for (i in 1:50){
+  location <- state.abb[i]
+  ADV_URL <- paste0('https://www.indeed.com/jobs?as_and=&as_not=&as_cmp=&jt=all&st=&salary=&sr=directhire&radius=25&fromage=any&limit=50&sort=date&psf=advsrch&as_any=&as_phr=&as_ttl=', job_title, '&l=', location)
+  start_page <- read_html(ADV_URL)
+  count <- unlist(strsplit(start_page %>% 
+                             html_node("#searchCount") %>%
+                             html_text(), split = ' ')) 
+  job_count[i] <- as.numeric(gsub(",", "", count[12]))
+}
+
+df_bi <- cbind(region = abbr2state(state.abb),job_count)
+df_bi <- as.data.frame(df_bi)
+df_bi$job_count <- as.numeric(as.character(df_bi$job_count))
+df_bi$region <- tolower(df_bi$region)
+df_bi <- df_bi %>% mutate(title= "Business Intelligence")
+bi_opt_states <- df_bi[which(df_bi$job_count>50),]
+# nrow(bi_opt_states) # 11 states have more than 50 job openings
+# sum(bi_opt_states$job_count) # 1123 in these 11 states
+
+combi <- rbind(df_ba,df_bi,df_da,df_de,df_ds)
+write.csv(combi, file = "job_availablity.csv")
+
+datatable(combi, caption = 'Table: Tidy Data of Job Availablity')
+```
+
+
+
+## Plots
+```{r echo=FALSE}
+combi %>%
+  right_join(map_data("state"),by = "region") %>%
+  ggplot(aes(x=long,y=lat,group=group)) +
+  geom_polygon(aes(fill=job_count)) +
+  facet_wrap(~ title, ncol = 3) +
+  scale_fill_gradient2(name = "Job Counts") +
+  ggtitle("Figure: Job Counts by Job Titles") +
+  expand_limits() +
+  theme_void() +
+  theme(strip.text.x = element_text(size = 12),
+        text = element_text(family = "Georgia"),
+        plot.title = element_text(size = 28, margin = margin(b = 10)),
+        plot.subtitle = element_text(size = 12, color = "darkslategrey", margin = margin(b = 25)))
+```
+
+
+---
+
+```{r echo=FALSE, warning=FALSE}
+totalCount<- NULL
+totalCount$region <- df_ba$region
+
+for (i in 1:50){
+  totalCount$job_count[i] <- sum(df_ba$job_count[i]+df_bi$job_count[i]+df_da$job_count[i]+df_de$job_count[i]+df_ds$job_count[i])
+}
+
+totalCount$region <- as.character(totalCount$region)
+totalCount<-as.data.frame(totalCount)
+
+totalCount %>%
+  right_join(map_data("state"), by = "region") %>%
+  select(-subregion) %>% 
+  ggplot(aes(x=long,y=lat,group=group)) +
+  geom_polygon(aes(fill=job_count)) +
+  scale_fill_gradient2(name = "job_count") +
+  ggtitle("Total Job Count")+
+  expand_limits() +
+  theme_void() +
+  theme(strip.text.x = element_text(size = 12),
+        text = element_text(family = "Georgia"),
+        plot.title = element_text(size = 28, margin = margin(b = 10)),
+        plot.subtitle = element_text(size = 12, color = "darkslategrey", margin = margin(b = 25)))
+```
+
+
+## Web Scraping on USNews
+### Program Names Used
+- Statistics
+- Business
+- Computer Science
+
+
+---
+
+Example 
+```
+  schoolname <- url %>% 
+    read_html() %>% 
+    html_nodes(".schoolname") %>% 
+    html_text()
+  
+  citystate <- url %>% 
+    read_html() %>% 
+    html_nodes(".citystate") %>% 
+    html_text()
+```
+
+
+```{r include=FALSE}
+# statistics 
+url <- NULL
+page_num <- NULL
+stat_res <- NULL
+
+# 6 pages of results in total
+# use for loop to get names and locations
+for (i in 1:6){
+  page_num <- i
+  url <- paste0("https://www.usnews.com/best-graduate-schools/search?sort=rank_sort&sortdir=asc&program_rank=top_50&program=top-statistics-schools&page=", page_num)
+
+  schoolname <- url %>% 
+    read_html() %>% 
+    html_nodes(".schoolname") %>% 
+    html_text()
+  
+  citystate <- url %>% 
+    read_html() %>% 
+    html_nodes(".citystate") %>% 
+    html_text()
+  
+  lists <- data.frame(
+    name = schoolname,
+    location = citystate
+  )
+  
+  stat_res <- rbind(stat_res,lists)
+}
+
+stat_res <- stat_res[!duplicated(stat_res$name), ]
+```
+
+```{r include=FALSE}
+# business
+url <- NULL
+page_num <- NULL
+busi_res <- NULL
+
+# 6 pages of results in total
+# use for loop to get names and locations
+for (i in 1:6){
+  page_num <- i
+  url <- paste0("https://www.usnews.com/best-graduate-schools/search?program=top-business-schools&specialty=&name=&zip=&program_rank=top_50&enrollment-min=0&enrollment-max=1000&tuition_and_fees-min=5000&tuition_and_fees-max=50000&sort=program_rank&sortdir=asc&page=", page_num)
+  
+  schoolname <- url %>% 
+    read_html() %>% 
+    html_nodes(".schoolname") %>% 
+    html_text()
+  
+  citystate <- url %>% 
+    read_html() %>% 
+    html_nodes(".citystate") %>% 
+    html_text()
+  
+  lists <- data.frame(
+    name = schoolname,
+    location = citystate
+  )
+  
+  busi_res <- rbind(busi_res,lists)
+}
+
+busi_res <- busi_res[!duplicated(busi_res$name), ]
+```
+
+```{r include=FALSE}
+# CS
+url <- NULL
+page_num <- NULL
+cs_res <- NULL
+
+# 6 pages of results in total
+# use for loop to get names and locations
+for (i in 1:6){
+  page_num <- i
+  url <- paste0("https://www.usnews.com/best-graduate-schools/search?program=top-computer-science-schools&specialty=&name=&zip=&program_rank=top_50&sort=program_rank&sortdir=asc&page=", page_num)
+  
+  schoolname <- url %>% 
+    read_html() %>% 
+    html_nodes(".schoolname") %>% 
+    html_text()
+  
+  citystate <- url %>% 
+    read_html() %>% 
+    html_nodes(".citystate") %>% 
+    html_text()
+  
+  lists <- data.frame(
+    name = schoolname,
+    location = citystate
+  )
+  
+  cs_res <- rbind(cs_res,lists)
+}
+
+cs_res <- cs_res[!duplicated(cs_res$name), ]
+```
+
+
+```{r,include=FALSE}
+### create tidy data ###
+
+############## clean the names #############################
+busi_res$location<- as.character(busi_res$location)
+stat_res$location<- as.character(stat_res$location)
+cs_res$location<- as.character(cs_res$location)
+
+busi_res$name<- as.character(busi_res$name)
+stat_res$name<- as.character(stat_res$name)
+cs_res$name<- as.character(cs_res$name)
+
+########################################################
+# we don't need the specific school names
+# delect them and merge three data set to get distinct university names
+############### business ############################
+
+n <- length(busi_res$name)
+
+for (i in 1:n){
+  if (str_detect(busi_res$name[i],"\\(")){
+    busi_res$name[i] <- sub("(.*?)\\(.*", "\\1", busi_res$name[i])
+  }
+  else{
+    busi_res$name[i] <- sub("(.*?)\\s\\-.*", "\\1", busi_res$name[i])
+  }
+}
+
+
+############### CS ############################
+n <- length(cs_res$name)
+
+for (i in 1:n){
+  if (str_detect(cs_res$name[i],"\\(")){
+    cs_res$name[i] <- sub("(.*?)\\(.*", "\\1", cs_res$name[i])
+  }
+  else{
+    cs_res$name[i] <- sub("(.*?)\\s\\-.*", "\\1", cs_res$name[i])
+  }
+}
+
+######### create new variables(region, city) ############################
+
+n <- length(stat_res$name)
+for (i in 1:n){
+  if (str_detect(stat_res$name[i],"\\(")){
+    stat_res$name[i] <- sub("(.*?)\\(.*", "\\1", stat_res$name[i])
+  }
+  else{
+    stat_res$name[i] <- sub("(.*?)\\s\\-.*", "\\1", stat_res$name[i])
+  }
+}
+
+```
+
+
+## Glimpse of Tidy Data
+```{r echo=FALSE}
+tot <- rbind(cs_res,stat_res,busi_res)
+tot <- tot[!duplicated(tot$name), ]
+head(tot)
+```
+
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+tot <- rbind(cs_res,stat_res,busi_res)
+tot <- tot[!duplicated(tot$name), ]
+
+write.csv(tot, file = "graduate_sch.csv")
+
+df <- NULL
+for (i in 1:nrow(tot)){
+  df$school[i] <- tot$name[i]
+  code <- geocode(as.character(tot$name[i]))
+  df$lng[i] <- code[1]
+  df$lat[i] <- code[2]
+}
+```
+
+
+## Visualize the Distribution of Universities
+```{r echo=FALSE}
+df$lng <- unlist(df$lng)
+df$lat <- unlist(df$lat)
+
+leaflet() %>% addTiles()  %>% setView(-97, 40, zoom = 4) %>%
+  addMarkers(data = df,lng= ~ lng,lat=~lat,popup= df$school)
+```
+
+---
+
+In general, the most expensive areas to live were Hawaii, Alaska, the West Coast, and the Northeast. The least expensive areas were the Midwest and Southern states.
+```{r echo=FALSE}
+cost_liv <- read.csv("cost_of_living.csv",header = TRUE)
+
+colnames(cost_liv)[1] <- "region"
+cost_liv$region <- tolower(as.character(cost_liv$region))
+cost_liv <- cost_liv %>% select(region, Index)
+```
+
+```{r echo=FALSE}
+cost_liv %>%
+  right_join(map_data("state"), by = "region") %>%
+  select(-subregion) %>% 
+  ggplot(aes(x=long,y=lat,group=group)) +
+  geom_polygon(aes(fill=Index)) +
+  scale_fill_gradient2(name = "Index") +
+  ggtitle("Cost of Living",
+          subtitle = "2017 Annual Average") + 
+  expand_limits() +
+  theme_void() +
+  theme(strip.text.x = element_text(size = 12),
+        text = element_text(family = "Georgia"),
+        plot.title = element_text(size = 28, margin = margin(b = 10)),
+        plot.subtitle = element_text(size = 12, color = "darkslategrey", margin = margin(b = 25)))
+```
+
+
+
+## References
+https://bookdown.org/yihui/rmarkdown/
+https://rpubs.com/bradleyboehmke/final_project_example
+http://rpubs.com/dyang9411/301598
+https://github.com/steve-liang/DSJobSkill
+https://mbs.rutgers.edu/articles/numbers-making-sense-job-titles-analytics
+https://www.missourieconomy.org/indicators/cost_of_living/
+
+
