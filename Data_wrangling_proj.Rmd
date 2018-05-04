@@ -28,7 +28,7 @@ library(leaflet)
 devtools::install_github("dkahle/ggmap")
 
 ## API KEY
-register_google(key ="AIzaSyCW-LU6v7mdJVWp8tfpYHYQ2rkVSSGf_mY")
+register_google(key ="")
 ```
 
 
